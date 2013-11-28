@@ -49,7 +49,7 @@ module SYMBOLIC-K
   syntax String ::= "Vars2SMTLib" "(" Set ")"
   [prefixlabel(Vars2SMTLib), function]
   rule
-    Vars2SMTLib(SetItem(V:Variable) S:Set)
+    Vars2SMTLib(SetItem(V:Variable), S:Set)
   =>
     "(" +String K2SMTLib(V) +String " " +String K2Sort(V) +String ")"
     +String Vars2SMTLib(S)
@@ -58,7 +58,7 @@ module SYMBOLIC-K
   syntax String ::= "Consts2SMTLib" "(" Set ")"
   [prefixlabel(Consts2SMTLib), function]
   rule
-    Consts2SMTLib(SetItem(V:Variable) S:Set)
+    Consts2SMTLib(SetItem(V:Variable), S:Set)
   =>
     "(declare-fun " +String K2SMTLib(V)
     +String " () " +String K2Sort(V) +String ")\n"
@@ -92,10 +92,7 @@ module SYMBOLIC-K
 //  syntax Bool ::= "isVariable" "(" K ")"
 //  [prefixlabel(isVariable), klabel(isVariable), predicate]
 
-  syntax Bool ::= "isVariable" "(" List ")" [prefixlabel(isVariable), predicate]
-  syntax Bool ::= "isVariable" "(" Set ")" [prefixlabel(isVariable), predicate]
   syntax Bool ::= "isVariable" "(" Bag ")" [prefixlabel(isVariable), predicate]
-  syntax Bool ::= "isVariable" "(" Map ")" [prefixlabel(isVariable), predicate]
 
   syntax Bool ::= "isKLabelConstant" "(" KLabel ")"
   [prefixlabel(isKLabelConstant), klabel(isKLabelConstant), predicate]
@@ -112,24 +109,12 @@ module SYMBOLIC-K
 //  rule K2Sort(_:Array) => "(Array Int Int)" // support only integer arrays
 
   // declare isSymbolicSort for List, Set, Bag and Map
-  syntax K ::= "isSymbolicList" "(" List ")" [prefixlabel(isSymbolicList), predicate]
-  syntax K ::= "isSymbolicSet" "(" Set ")" [prefixlabel(isSymbolicSet), predicate]
   syntax K ::= "isSymbolicBag" "(" Bag ")" [prefixlabel(isSymbolicBag), predicate]
-  syntax K ::= "isSymbolicMap" "(" Map ")" [prefixlabel(isSymbolicMap), predicate]
 
 
   // define isSymbolicK
   rule
-    isSymbolicK(List2KLabel(L:List)(.KList)) => isSymbolicList(L)
-  [predicate]
-  rule
-    isSymbolicK(Set2KLabel(S:Set)(.KList)) => isSymbolicSet(S)
-  [predicate]
-  rule
     isSymbolicK(Bag2KLabel(B:Bag)(.KList)) => isSymbolicBag(B)
-  [predicate]
-  rule
-    isSymbolicK(Map2KLabel(M:Map)(.KList)) => isSymbolicMap(M)
   [predicate]
   rule isSymbolicK(KL:KLabel(LK:KList)) => false
   when isBuiltin(KL(LK))

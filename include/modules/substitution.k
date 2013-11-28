@@ -24,7 +24,6 @@ module VARIABLE
 
   syntax K ::= #getVars1(KList, Set)  [function]
   rule #getVars1((X:Variable => .KList),,_, _ (.Set => SetItem(X)))
-  rule #getVars1(((Set2KLabel S:Set)(.KList) => Set2KTerm(S:Set)),,_, _)
   rule #getVars1((L:KLabel(Ks:KList) => Ks),,_, _)
     when isVariable(L(Ks)) =/=K true andBool isSet(L(Ks)) =/=K true
   rule #getVars1((.K => .KList),,_, _) 
@@ -37,12 +36,12 @@ module VARIABLE
 
   syntax K ::= #freshVar1(Set, K)  [function]
   rule #freshVar1(.Set, K:K) => K
-  rule #freshVar1(SetItem(L:KLabel("local",,I1:Int)) Ks:Set,L("local",,I2:Int))
+  rule #freshVar1((SetItem(L:KLabel("local",,I1:Int)), Ks:Set),L("local",,I2:Int))
     => #if I1 >=Int I2 ==K true
        #then #freshVar1(Ks, L("local",, I1 +Int 1))
        #else #freshVar1(Ks, L("local",, I2))
        #fi
-  rule #freshVar1((SetItem(K:K) => .Set) _, _)
+  rule #freshVar1(((SetItem(K:K) => .Set), _:Set), _)
     when isLocalFreshVar(K) =/=K true
 //    when isSymbolicK(K) =/=K true
 // Grigore: Traian, I do not understand why you had the condition above.
@@ -99,7 +98,7 @@ module BINDER
     [function]
   rule #binderSplit2(L:KLabel, I:Int, Ks:KList,
                      NBEs:KList, BEs:KList, Bound:Set, vars(Bound':Set))
-    => #binderSplit1(L, I, Ks, NBEs, BEs, Bound Bound')
+    => #binderSplit1(L, I, Ks, NBEs, BEs, (Bound, Bound'))
 
 endmodule
 
@@ -110,10 +109,10 @@ module FREE-VARS
                | freeVariables(Set)      [function, latex({\it FV}({#1}))]
   rule freeVariables(Ks:KList) => #getVarsFromK(#freeVars(Ks))
   rule freeVariables(.Set) => .Set
-  rule freeVariables(SetItem(K:K) S:Set) => freeVariables(K) freeVariables(S)
+  rule freeVariables(SetItem(K:K), S:Set) => freeVariables(K), freeVariables(S)
 
   syntax K ::= #freeVarsSet(Set) [function]
-  rule #freeVarsSet(S:Set) => #freeVars(Set2KTerm(S))
+  rule #freeVarsSet(SetItem(X:K),S:Set) => #freeVars(X,,#freeVarsSet(S))
 
 // Grigore: again, I think this should just return a set of variables, not a K
 // I added a user-interface variant of it above.  I use it in type-inference.
@@ -125,7 +124,7 @@ module FREE-VARS
   rule #freeVars(X:Variable,,Ks:KList, Bound:Set, Free:Set)
     => #freeVars(Ks, Bound, Free) when X in Bound
   rule #freeVars(X:Variable,,Ks:KList, Bound:Set, Free:Set)
-    => #freeVars(Ks, Bound, Free SetItem(X)) when notBool(X in Bound)
+    => #freeVars(Ks, Bound, (Free, SetItem(X))) when notBool(X in Bound)
   rule #freeVars((L:KLabel(Ks:KList) => Ks),, _, _, _)
     when (isVariable(L(Ks)) =/=K true) andBool
          (isBinder(L(Ks)) =/=K true) andBool
@@ -142,7 +141,7 @@ module FREE-VARS
 
   syntax K ::= #freeVars1(KList, K, Set, Set)  [function]
   rule #freeVars1(Ks:KList, vars(Free1:Set), Bound:Set, Free2:Set)
-    => #freeVars(Ks, Bound, Free1 Free2)
+    => #freeVars(Ks, Bound, (Free1, Free2))
 
   syntax K ::= #freeVarsBinder(K, Set)  [function]
   rule #freeVarsBinder(K:K, Bound:Set)
@@ -152,10 +151,10 @@ module FREE-VARS
   rule #freeVarsBinder1(
           #splitedBinder(NBEs:KList, BEs:KList, Bound1:Set), Bound:Set)
     => #freeVarsBinder2(
-          #freeVars(NBEs, Bound, .Set), #freeVars(BEs, Bound1 Bound, .Set))
+          #freeVars(NBEs, Bound, .Set), #freeVars(BEs, (Bound1, Bound), .Set))
 
   syntax K ::= #freeVarsBinder2(K, K)  [function]
-  rule #freeVarsBinder2(vars(Free1:Set), vars(Free2:Set)) => vars(Free1 Free2)
+  rule #freeVarsBinder2(vars(Free1:Set), vars(Free2:Set)) => vars(Free1, Free2)
 endmodule
 
 module SUBSTITUTION
