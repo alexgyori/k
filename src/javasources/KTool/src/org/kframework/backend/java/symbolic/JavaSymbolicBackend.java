@@ -5,7 +5,9 @@ import java.io.IOException;
 
 import org.kframework.backend.BasicBackend;
 import org.kframework.backend.symbolic.TagUserRules;
+import org.kframework.compile.CoverageTransformer;
 import org.kframework.compile.FlattenModules;
+import org.kframework.compile.MetaCoverageTransformer;
 import org.kframework.compile.ResolveConfigurationAbstraction;
 import org.kframework.compile.checks.CheckConfigurationCells;
 import org.kframework.compile.checks.CheckRewrite;
@@ -60,8 +62,6 @@ import org.kframework.utils.BinaryLoader;
 import org.kframework.utils.Stopwatch;
 import org.kframework.utils.general.GlobalSettings;
 
-import edu.illinois.mir.k.coverage.CoverageTransformer;
-import edu.illinois.mir.k.coverage.MetaCoverageTransformer;
 
 
 /**
@@ -112,7 +112,6 @@ public class JavaSymbolicBackend extends BasicBackend {
     public CompilerSteps<Definition> getCompilationSteps() {
         CompilerSteps<Definition> steps = new CompilerSteps<Definition>(context);
         steps.add(new FirstStep(this, context));
-
         
         steps.add(new CheckVisitorStep<Definition>(new CheckConfigurationCells(context), context));
         steps.add(new RemoveBrackets(context));
@@ -139,7 +138,7 @@ public class JavaSymbolicBackend extends BasicBackend {
         steps.add(new ResolveFunctions(context));
         steps.add(new AddKCell(context));
 
-        if(GlobalSettings.tracegen){
+        if(GlobalSettings.generateTraces){
         	steps.add(new MetaCoverageTransformer("MetaCoverageTransformer",context));
         	steps.add(new CoverageTransformer("CoverageTransformer",context));
         }

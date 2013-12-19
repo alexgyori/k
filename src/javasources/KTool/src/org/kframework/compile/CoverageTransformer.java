@@ -1,4 +1,4 @@
-package edu.illinois.mir.k.coverage;
+package org.kframework.compile;
 
 import java.util.Map.Entry;
 
@@ -24,7 +24,6 @@ import org.kframework.kil.visitors.exceptions.TransformerException;
 
 public class CoverageTransformer extends BasicTransformer {
 
-
 	private static final String TRACE_CELL_TAG = "trace";
 	private static final String META_CELL_TAG = "meta";
 	private final String CONTAINER_CELL;
@@ -49,16 +48,14 @@ public class CoverageTransformer extends BasicTransformer {
 				&& !r.containsAttribute("stdin")) {
 			Cell c = makeNewCoverageRewriteCell(MetaCoverageTransformer.RuleToId
 					.get(node));
-			Term body = r.getBody();			
-			body = boxTermToBag(body);
-			((Bag) body).add(c);
+			Bag body = boxTermToBag(r.getBody());
+			body.add(c);
 			r.setBody(body);
 			return r;
 
 		}
 		return transform((Sentence) r);
 	}
-
 
 	@Override
 	public ASTNode transform(Configuration node) {
@@ -69,26 +66,26 @@ public class CoverageTransformer extends BasicTransformer {
 
 		//create cell that handles tracing
 		Bag b = new Bag();
-		((Bag) b).add(traceCell);
-		((Bag) b).add(metaCell);
+		b.add(traceCell);
+		b.add(metaCell);
 		Cell container = createCell(this.CONTAINER_CELL, b);
 
 		//add cell to current configuration
 		Term body = config.getBody();
-		body=boxTermToBag(body);
+		body = boxTermToBag(body);
 		((Bag)body).add(container);
 		config.setBody(body);
 		
 		return config;
 	}
 	
-	private Term boxTermToBag(Term body) {
+	private Bag boxTermToBag(Term body) {	     		
 		if (!(body instanceof Bag)) {
 			Bag b = new Bag();
-			b.add(body);
+			b.add(body);		
 			body = b;
-		}
-		return body;
+		}		
+		return (Bag)body;
 	}
 
 	private Cell makeNewCoverageRewriteCell(Long long1) {		
@@ -98,9 +95,7 @@ public class CoverageTransformer extends BasicTransformer {
 		coverage.setEllipses(Cell.Ellipses.LEFT);
 		return coverage;
 	}
-
-	
-
+       
 	private Cell createCell(String tag, Term content) {
 		Cell coverageCell = new Cell();
 		coverageCell.setLabel(tag);
@@ -123,8 +118,5 @@ public class CoverageTransformer extends BasicTransformer {
 			map.add(item);
 		}
 		return map;
-	}
-	
-	
-
+	}	
 }
